@@ -1,0 +1,65 @@
+# PowerShell temporary files
+*.ps1xml
+*.pssc
+*.psrc
+
+# PowerShell modules / generated files
+*.psd1.tmp
+*.psm1.tmp
+
+# Logs
+*.log
+*.tmp
+*.bak
+
+# Generated reports
+result/
+results/
+reports/
+output/
+
+# Local audit exports
+*.json
+*.csv
+*.xml
+*.evtx
+
+# Keep examples if needed
+!examples/
+!examples/*.json
+!examples/*.md
+
+# Windows files
+Thumbs.db
+Desktop.ini
+
+# macOS files
+.DS_Store
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+
+# Environment files
+.env
+.env.local
+
+# Archives
+*.zip
+*.7z
+*.rar
+
+# Local notes
+notes/
+drafts/
+
+# Screenshots or private captures
+screenshots/
+captures/
+
+# System or forensic artifacts
+*.etl
+*.dmp
+*.dump
+*.pcap
+*.pcapng
