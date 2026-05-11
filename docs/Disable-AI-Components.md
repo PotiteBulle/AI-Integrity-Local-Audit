@@ -1,19 +1,18 @@
 # AI Integrity Remediation
 
-Script PowerShell de remédiation défensive pour désactiver ou neutraliser certains composants liés à l’IA dans un environnement Windows.
+Script PowerShell de remédiation défensive permettant de désactiver ou de neutraliser certains composants liés à l’IA dans un environnement Windows.
 
 Ce projet a été conçu pour un usage local, défensif et pédagogique, principalement dans une machine virtuelle Windows fraîchement installée.
 
 ## Objectif
 
-L’objectif du script est de réduire l’activité potentielle de composants IA intégrés ou associés à Windows, Chrome, Edge et Microsoft Office, sans supprimer brutalement les composants système.
+L’objectif du script est de réduire l’activité potentielle de composants IA intégrés ou associés à Windows, Chrome et Microsoft Office, sans supprimer brutalement les composants système.
 
 Le script privilégie une approche prudente :
 
 - désactivation des tâches planifiées liées à WindowsAI
-- application ou renforcement de politiques Windows
-- application ou renforcement de politiques Chrome et Edge
-- nettoyage optionnel de caches IA locaux
+- nettoyage optionnel des caches IA locaux de Chrome
+- nettoyage optionnel des ressources Microsoft AugLoop
 - génération d’un rapport JSON de remédiation
 - mode simulation par défaut
 
@@ -30,13 +29,12 @@ Il est recommandé de créer un snapshot de la VM ou un point de restauration av
 Le script peut :
 
 - désactiver les tâches WindowsAI liées à ClickToDo
-- désactiver les tâches WindowsAI liées à Recall
-- appliquer des politiques de désactivation de Windows Copilot
-- appliquer des politiques de désactivation de certaines analyses IA Windows
-- appliquer des politiques Chrome GenAI
-- appliquer des politiques Edge liées à certaines fonctionnalités IA
-- fermer Chrome, Edge et Office avant nettoyage
-- nettoyer certains caches IA locaux
+- désactiver certaines tâches WindowsAI liées à Recall
+- vérifier la présence de politiques Chrome protectrices
+- fermer Chrome avant nettoyage
+- nettoyer certains caches IA locaux de Chrome
+- fermer les applications Office avant nettoyage
+- nettoyer le dossier Microsoft AugLoop
 - générer un rapport JSON détaillé
 
 ## Ce que le script ne fait pas
@@ -51,7 +49,7 @@ Le script ne supprime pas les composants système sensibles suivants :
 
 Le script ne supprime pas non plus les politiques Chrome protectrices.
 
-L’objectif est de rendre les composants non actifs quand cela est possible, pas de casser Windows.
+L’objectif est de rendre certains composants non actifs quand cela est possible, pas de casser Windows.
 
 ## Prérequis
 
@@ -67,6 +65,24 @@ L’objectif est de rendre les composants non actifs quand cela est possible, pa
 Disable-AI-Components.ps1
 ```
 
+## Paramètres disponibles
+
+Le script actuel accepte les paramètres suivants :
+
+```text
+-Apply
+-DisableWindowsAITasks
+-CleanChromeAICache
+-CleanOfficeAugLoop
+-OutputDirectory
+```
+
+Pour vérifier les paramètres disponibles directement depuis PowerShell :
+
+```powershell
+(Get-Command .\Disable-AI-Components.ps1).Parameters.Keys
+```
+
 ## Utilisation
 
 ### Mode simulation
@@ -74,7 +90,7 @@ Disable-AI-Components.ps1
 Le mode simulation affiche ce que le script ferait sans appliquer de changement.
 
 ```powershell
-.\Disable-AI-Components.ps1 -DisableWindowsAITasks -SetWindowsAIPolicies -SetBrowserAIPolicies -CleanAICaches
+.\Disable-AI-Components.ps1 -DisableWindowsAITasks -CleanChromeAICache -CleanOfficeAugLoop
 ```
 
 ### Mode application réelle
@@ -82,7 +98,7 @@ Le mode simulation affiche ce que le script ferait sans appliquer de changement.
 Le mode application réelle applique les changements demandés.
 
 ```powershell
-.\Disable-AI-Components.ps1 -Apply -DisableWindowsAITasks -SetWindowsAIPolicies -SetBrowserAIPolicies -CleanAICaches
+.\Disable-AI-Components.ps1 -Apply -DisableWindowsAITasks -CleanChromeAICache -CleanOfficeAugLoop
 ```
 
 ## Options disponibles
@@ -107,89 +123,52 @@ Tâches ciblées :
 \Microsoft\Windows\WindowsAI\Recall\PolicyConfiguration
 ```
 
-### `-SetWindowsAIPolicies`
+### `-CleanChromeAICache`
 
-Ajoute ou renforce des politiques Windows liées à Copilot et WindowsAI.
-
-Clés ciblées :
-
-```text
-HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot
-HKCU:\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot
-HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsAI
-HKCU:\SOFTWARE\Policies\Microsoft\Windows\WindowsAI
-```
-
-Valeurs configurées :
-
-```text
-TurnOffWindowsCopilot = 1
-DisableAIDataAnalysis = 1
-```
-
-### `-SetBrowserAIPolicies`
-
-Ajoute ou renforce des politiques Chrome et Edge liées aux fonctionnalités IA.
-
-Clés Chrome ciblées :
-
-```text
-HKLM:\SOFTWARE\Policies\Google\Chrome
-```
-
-Politiques Chrome configurées :
-
-```text
-GenAILocalFoundationalModelSettings = 1
-AIModeSettings = 1
-CreateThemesSettings = 2
-DevToolsGenAiSettings = 2
-GeminiActOnWebSettings = 1
-GeminiSettings = 1
-HelpMeWriteSettings = 2
-HistorySearchSettings = 2
-SearchContentSharingSettings = 1
-```
-
-Clés Edge ciblées :
-
-```text
-HKLM:\SOFTWARE\Policies\Microsoft\Edge
-```
-
-Politiques Edge configurées :
-
-```text
-HubsSidebarEnabled = 0
-CopilotPageContext = 0
-DiscoverPageContextEnabled = 0
-ComposeInlineEnabled = 0
-```
-
-### `-CleanAICaches`
-
-Ferme les applications concernées puis nettoie certains caches IA locaux.
+Ferme Chrome puis nettoie certains caches locaux liés à des ressources IA ou à des modèles de suggestion.
 
 Caches ciblés :
 
 ```text
 %USERPROFILE%\AppData\Local\Google\Chrome\User Data\optimization_guide_model_store
 %USERPROFILE%\AppData\Local\Google\Chrome\User Data\OnDeviceHeadSuggestModel
-%USERPROFILE%\AppData\Local\Microsoft\Edge\User Data\optimization_guide_model_store
+```
+
+Application fermée avant nettoyage :
+
+```text
+chrome
+```
+
+### `-CleanOfficeAugLoop`
+
+Ferme les applications Office puis nettoie le dossier Microsoft AugLoop.
+
+Cache ciblé :
+
+```text
 %USERPROFILE%\AppData\Local\Microsoft\AugLoop
 ```
 
 Applications fermées avant nettoyage :
 
 ```text
-chrome
-msedge
 winword
 excel
 powerpnt
 onenote
 outlook
 onedrive
+```
+
+### `-OutputDirectory`
+
+Permet de choisir le dossier de sortie du rapport JSON.
+
+Exemple :
+
+```powershell
+.\Disable-AI-Components.ps1 -OutputDirectory ".\result"
 ```
 
 ## Rapport généré
@@ -203,7 +182,7 @@ Le script génère un rapport JSON dans le dossier suivant :
 Exemple :
 
 ```text
-.\result\ai_disable_report_2026-05-11_09-30-00.json
+.\result\ai_remediation_report_2026-05-11_09-30-00.json
 ```
 
 Le rapport contient :
@@ -214,7 +193,7 @@ Le rapport contient :
 - les actions réalisées ou simulées
 - les erreurs éventuelles
 - les chemins ciblés
-- les valeurs registre appliquées ou prévues
+- l’état des tâches ou chemins vérifiés
 
 ## Exemple de workflow recommandé
 
@@ -225,7 +204,7 @@ Avant toute modification réelle, créer un snapshot ou un point de restauration
 ### 2. Lancer une simulation
 
 ```powershell
-.\Disable-AI-Components.ps1 -DisableWindowsAITasks -SetWindowsAIPolicies -SetBrowserAIPolicies -CleanAICaches
+.\Disable-AI-Components.ps1 -DisableWindowsAITasks -CleanChromeAICache -CleanOfficeAugLoop
 ```
 
 ### 3. Lire le rapport JSON
@@ -239,12 +218,12 @@ Vérifier le rapport généré dans :
 ### 4. Appliquer réellement
 
 ```powershell
-.\Disable-AI-Components.ps1 -Apply -DisableWindowsAITasks -SetWindowsAIPolicies -SetBrowserAIPolicies -CleanAICaches
+.\Disable-AI-Components.ps1 -Apply -DisableWindowsAITasks -CleanChromeAICache -CleanOfficeAugLoop
 ```
 
 ### 5. Redémarrer la VM
 
-Un redémarrage est conseillé afin de vérifier que les tâches et politiques sont bien prises en compte.
+Un redémarrage est conseillé afin de vérifier que les tâches sont bien désactivées et que les caches ne sont plus actifs.
 
 ### 6. Relancer l’audit
 
@@ -278,18 +257,6 @@ chrome://policy
 
 Puis cliquer sur `Reload policies`.
 
-### Vérifier les politiques Edge
-
-```powershell
-reg query "HKLM\SOFTWARE\Policies\Microsoft\Edge"
-```
-
-Dans Edge :
-
-```text
-edge://policy
-```
-
 ## Limites
 
 Ce script ne garantit pas la suppression complète de toutes les fonctionnalités IA.
@@ -298,11 +265,11 @@ Certaines fonctionnalités peuvent être :
 
 - intégrées à Windows
 - réinstallées après mise à jour
-- recréées par Chrome, Edge ou Office
+- recréées par Chrome ou Office
 - dépendantes de politiques non documentées
 - dépendantes de services côté serveur
 
-Le script vise surtout à réduire l’activité locale visible et à appliquer un durcissement raisonnable.
+Le script vise surtout à réduire l’activité locale visible et à appliquer une remédiation raisonnable.
 
 ## Recommandations
 
@@ -310,7 +277,7 @@ Le script vise surtout à réduire l’activité locale visible et à appliquer 
 - Utiliser le mode simulation
 - Lire le rapport JSON avant application réelle
 - Ne pas supprimer manuellement les dossiers système
-- Préférer les politiques de désactivation
+- Préférer la désactivation plutôt que la suppression brute
 - Relancer l’audit après remédiation
 - Comparer les rapports avant et après
 
